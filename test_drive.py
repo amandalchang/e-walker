@@ -12,7 +12,7 @@ def run_motor_using_with():
         motor.set_duty_cycle(.02)
 
         # run motor and print out rpm for ~2 seconds
-        for i in range(30):
+        for i in range(15):
             time.sleep(0.1)
             print(motor.get_measurements().rpm)
         motor.set_rpm(0)
