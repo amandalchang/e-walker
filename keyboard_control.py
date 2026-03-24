@@ -64,7 +64,7 @@ if __name__ == '__main__':
         print("Control active. Use Arrow Keys to drive, Space to stop, Esc to quit.")
         
         # Use a listener to monitor key presses
-        with keyboard.Listener(on_press=lambda k: on_press(k, motor)) as listener:
+        with keyboard.Listener(on_press=lambda k: continuous_press(k, motor)) as listener:
             listener.join()
 
 
