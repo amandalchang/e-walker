@@ -39,11 +39,11 @@ def on_press(key, motor):
 
 def continuous_forward(motor):
     print("continous forward")
-    #motor.set_duty_cycle(-0.1)
+    motor.set_duty_cycle(-0.1)
 
 def continuous_backward(motor):
     print("continous backward")
-    #motor.set_duty_cycle(0.1)
+    motor.set_duty_cycle(0.1)
 
 def continuous_press(key, motor):
     try:
