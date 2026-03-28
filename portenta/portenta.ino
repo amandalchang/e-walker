@@ -1,4 +1,4 @@
-#include "StellaUWB.h"
+#include <PortentaUWBShield.h>
 
 
 /**
@@ -32,85 +32,90 @@
 // }
 
 
-// from https://forum.arduino.cc/t/how-to-get-both-distance-and-angle-from-portenta-uwb-shield-stella-setup-in-twr/1430358/4 
+// taken from the following linke
+// https://forum.arduino.cc/t/how-to-get-both-distance-and-angle-from-portenta-uwb-shield-stella-setup-in-twr/1430358/4
 void rangingHandler(UWBRangingData &rangingData) {
 
 Serial.print("GOT RANGING DATA - Type: ");
 Serial.println(rangingData.measureType());
 
 if(rangingData.measureType() == (uint8_t)uwb::MeasurementType::TWO_WAY)
+{
+RangingMeasures twr = rangingData.twoWayRangingMeasure();
+
+for(int j = 0; j < rangingData.available(); j++)
+{
+  if(twr[j].status == 0 && twr[j].distance != 0xFFFF)
   {
-  RangingMeasures twr = rangingData.twoWayRangingMeasure();
+    // -------- Distance --------
+    Serial.print("Distance: ");
+    Serial.println(twr[j].distance);
 
-  for(int j = 0; j < rangingData.available(); j++) {
-      if(twr[j].status == 0 && twr[j].distance != 0xFFFF)
-      {
-        // -------- Distance --------
-        Serial.print("Distance: ");
-        Serial.println(twr[j].distance);
+    // -------- Azimuth --------
+    float azimuth = twr[j].aoa_azimuth / 128.0;
+    Serial.print("Azimuth (deg): ");
+    Serial.println(azimuth);
 
-        // -------- Azimuth --------
-        float azimuth = twr[j].aoa_azimuth / 128.0;
-        Serial.print("Azimuth (deg): ");
-        Serial.println(azimuth);
+    // -------- Elevation --------
+    float elevation = twr[j].aoa_elevation / 128.0;
+    Serial.print("Elevation (deg): ");
+    Serial.println(elevation);
 
-        // -------- Elevation --------
-        float elevation = twr[j].aoa_elevation / 128.0;
-        Serial.print("Elevation (deg): ");
-        Serial.println(elevation);
+    // -------- Quality --------
+    Serial.print("Azimuth FOM: ");
+    Serial.println(twr[j].aoa_azimuth_fom);
 
-        // -------- Quality --------
-        Serial.print("Azimuth FOM: ");
-        Serial.println(twr[j].aoa_azimuth_fom);
-
-        Serial.println("-----------------------------");
-      }
-    }
+    Serial.println("-----------------------------");
   }
+}
+}
 }
 
 void setup() {
+
   Serial.begin(115200);
- 
-  
+
+#if defined(ARDUINO_PORTENTA_C33)
+  /* Only the Portenta C33 has an RGB LED. */
+  pinMode(LEDR, OUTPUT);
+  digitalWrite(LEDR, LOW);
+#endif
+
   //define the source (this device) and destination MAC addresses, using 2-bytes MACs
-  uint8_t devAddr[]={0x22,0x22};
-  uint8_t destination[]={0x11,0x11};
+  uint8_t devAddr[]={0x11,0x11};
+  uint8_t destination[]={0x22,0x22};
   UWBMacAddress srcAddr(UWBMacAddress::Size::SHORT,devAddr);
   UWBMacAddress dstAddr(UWBMacAddress::Size::SHORT,destination);
   
-
   // register the ranging notification handler before starting
   UWB.registerRangingCallback(rangingHandler);
   
   UWB.begin(); //start the UWB stack, use Serial for the log output
   Serial.println("Starting UWB ...");
-
+  
   //wait until the stack is initialised
   while(UWB.state()!=0)
     delay(10);
 
-  //setup the session
   Serial.println("Starting session ...");
-  //setup a session with ID 0x11223344, in this case it defines a Two-Way 
-  //Ranging Initiator/Controller
+  //setup a session with ID 0x11223344
+  UWBRangingControlee myControlee(0x11223344, srcAddr, dstAddr);
   
-  UWBTracker myTracker(0x11223344,srcAddr,dstAddr);
-  //In order to configure a Controlee/Responder You can change the above to:
-  //UWBTracker myTracker(0x11223344,dstAddr,srcAddr,uwb::DeviceRole::RESPONDER,uwb::DeviceType::CONTROLEE); 
-
   //add the session to the session manager, in case you want to manage multiple connections
-  UWBSessionManager.addSession(myTracker);
+  UWBSessionManager.addSession(myControlee);
 
   //prepare the session applying the default parameters
-  myTracker.init();
+  myControlee.init();
   
   //start the session
-  myTracker.start();
+  myControlee.start();
+
 }
 
 void loop() {
-
+#if defined(ARDUINO_PORTENTA_C33)
+  /* Only the Portenta C33 has an RGB LED. */
+  digitalWrite(LEDR, !digitalRead(LEDR));
+#endif
   delay(1000);
 }
-
