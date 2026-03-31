@@ -8,19 +8,34 @@ import pyvesc.protocol.interface as v_interface
 
 CAN_ID = 45
 SPEED = 0.2
+DURATION = 2
 serial_port = '/dev/ttyACM0' 
 
 
-def dual_drive_forward(motor):
+def dual_drive_forward(motor, duration):
+    start_time = time.time()
     print("Driving Both Wheels Forward")
-    # Drive Main Motor
-    motor.set_duty_cycle(SPEED)
 
-    # Send Message to Drive Secondary Motor
-    msg_motor_2 = SetDutyCycle(SPEED)
-    msg_motor_2.can_id = CAN_ID  # The ID of your second motor
-    packet = v_interface.encode(msg_motor_2)
-    motor.write(packet)
+    #while loop to incorporate duration
+    while time.time() - start_time < duration:
+        # Drive Main Motor
+        motor.set_duty_cycle(SPEED)
+
+        # Send Message to Drive Secondary Motor
+        msg_motor_2 = SetDutyCycle(SPEED)
+        msg_motor_2.can_id = CAN_ID  # The ID of your second motor
+        packet = v_interface.encode(msg_motor_2)
+        motor.write(packet)
+
+    time.sleep(0.1)
+
+    #Stop Motors after duration done
+    print("Duration reached. Stopping motors.")
+    motor.set_duty_cycle(0)
+    
+    stop_msg = SetDutyCycle(duty_cycle=0)
+    stop_msg.can_id = CAN_ID
+    motor.write(v_interface.encode(stop_msg))
 
 
 
@@ -35,4 +50,7 @@ if __name__ == '__main__':
 
 
     with VESC(serial_port=serial_port) as main:
-        dual_drive_forward(main)
+        dual_drive_forward(main, DURATION)
+
+
+        
