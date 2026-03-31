@@ -1,3 +1,4 @@
+import pyvesc
 from pyvesc import VESC
 from pyvesc.VESC.messages.setters import SetDutyCycle
 import serial
@@ -22,12 +23,19 @@ if __name__ == '__main__':
 
         # # Control Motor 2 (Remote/Slave via CAN)
         # # We create a message and specify the target CAN ID
-        msg_motor_2 = SetDutyCycle(duty_cycle=0.2)
+        msg_motor_2 = pyvesc.SetDutyCycle(duty_cycle=0.2)
         msg_motor_2.can_id = 45  # The ID of your second motor
         # time.sleep(duration)
         #msg_motor_2 = SetDutyCycle(duty_cycle=0)
     
         # # Send the encoded packet through the master
-        #master.write(master.encode(msg_motor_2))
+        pyvesc.encode(msg_motor_2)
+
+
+#         # make a SetDutyCycle message
+# my_msg = pyvesc.SetDutyCycle(1e5)
+# print(my_msg.duty_cycle) # prints value of my_msg.duty_cycle
+# my_packet = pyvesc.encode(my_msg)
+# # my_packet (type: bytes) can now be sent over your UART connection
 
 
