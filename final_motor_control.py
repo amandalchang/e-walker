@@ -7,7 +7,7 @@ from pynput import keyboard
 import pyvesc.protocol.interface as v_interface 
 
 CAN_ID = 45
-SPEED = 
+SPEED = 0.2
 
 def dual_drive_forward(motor):
     print("Driving Both Wheels Forward")
@@ -15,7 +15,7 @@ def dual_drive_forward(motor):
     motor.set_duty_cycle(SPEED)
 
     # Send Message to Drive Secondary Motor
-    msg_motor_2 = SetDutyCycle(SPEED.2)
+    msg_motor_2 = SetDutyCycle(SPEED)
     msg_motor_2.can_id = CAN_ID  # The ID of your second motor
     packet = v_interface.encode(msg_motor_2)
     motor.write(packet)
