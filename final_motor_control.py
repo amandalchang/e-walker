@@ -58,10 +58,11 @@ if __name__ == '__main__':
 
     robust_init(SERIAL_PORT)
 
-    with VESC(serial_port=SERIAL_PORT) as main:
-        dual_drive_forward(main, DURATION)
-
-    robust_init(SERIAL_PORT)
+    try:
+        with VESC(serial_port=SERIAL_PORT) as main:
+            dual_drive_forward(main, DURATION)
+    except Exception as e:
+        robust_init(SERIAL_PORT)
 
 
         
