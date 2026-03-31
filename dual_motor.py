@@ -14,6 +14,14 @@ serial_port = '/dev/ttyACM0'
 duration = 2
 
 if __name__ == '__main__':
+    # Manually open and clear the port before giving it to PyVESC
+    temp_ser = serial.Serial(serial_port, baudrate=115200, timeout=0.5)
+    temp_ser.reset_input_buffer()
+    temp_ser.reset_output_buffer()
+    temp_ser.close() 
+    time.sleep(0.5) # Give the OS a moment to release the port
+    # ----------------
+    
     with VESC(serial_port=serial_port) as main:
 
         # Control Motor 1 (Local/Master)
