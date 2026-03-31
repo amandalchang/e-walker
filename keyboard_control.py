@@ -6,7 +6,7 @@ from pynput import keyboard
 
 
 
-serial_port = '/dev/ttyACM0' #fix with actual serial port once tested on raspi 
+serial_port = '/dev/ttyACM0'
 
 duration = 2
 
