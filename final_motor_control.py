@@ -8,6 +8,8 @@ import pyvesc.protocol.interface as v_interface
 
 CAN_ID = 45
 SPEED = 0.2
+serial_port = '/dev/ttyACM0' 
+
 
 def dual_drive_forward(motor):
     print("Driving Both Wheels Forward")
