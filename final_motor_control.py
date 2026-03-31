@@ -33,7 +33,7 @@ def dual_drive_forward(motor, duration):
     print("Duration reached. Stopping motors.")
     motor.set_duty_cycle(0)
     
-    stop_msg = SetDutyCycle(duty_cycle=0)
+    stop_msg = SetDutyCycle(0)
     stop_msg.can_id = CAN_ID
     motor.write(v_interface.encode(stop_msg))
 
