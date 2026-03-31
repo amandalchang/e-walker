@@ -4,6 +4,7 @@ from pyvesc.VESC.messages.setters import SetDutyCycle
 import serial
 import time
 from pynput import keyboard
+import pyvesc.protocol.interface as v_interface  
 
 CAN_ID = 45
 
@@ -28,8 +29,10 @@ if __name__ == '__main__':
         # time.sleep(duration)
         #msg_motor_2 = SetDutyCycle(duty_cycle=0)
     
+
+        packet = v_interface.encode(msg_motor_2)
         # # Send the encoded packet through the master
-        main.write(main.encode(msg_motor_2))
+        main.write(packet)
 
 
 
