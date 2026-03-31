@@ -5,6 +5,7 @@ import serial
 import time
 from pynput import keyboard
 import pyvesc.protocol.interface as v_interface 
+import os
 
 CAN_ID = 45
 SPEED = 0.2
