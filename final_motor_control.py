@@ -9,7 +9,7 @@ import pyvesc.protocol.interface as v_interface
 CAN_ID = 45
 SPEED = 0.2
 DURATION = 2
-serial_port = '/dev/ttyACM0' 
+SERIAL_PORT = '/dev/ttyACM0' 
 
 
 def dual_drive_forward(motor, duration):
@@ -37,19 +37,32 @@ def dual_drive_forward(motor, duration):
     stop_msg.can_id = CAN_ID
     motor.write(v_interface.encode(stop_msg))
 
+def robust_init(port):
+    # 1. Linux Kernel Reset
+    os.system(f"stty -F {port} -hupcl") # Toggle HUPCL
+    time.sleep(0.2)
+    
+    # 2. Flush the Physical Buffer
+    ser = serial.Serial(port, 115200, timeout=0.1)
+    ser.flushInput()
+    ser.flushOutput()
+    ser.close()
+    time.sleep(0.5)
 
 
 if __name__ == '__main__':
-    # Manually open and clear the port before giving it to PyVESC
-    temp_ser = serial.Serial(serial_port, baudrate=115200, timeout=0.5)
-    temp_ser.reset_input_buffer()
-    temp_ser.reset_output_buffer()
-    temp_ser.close() 
-    time.sleep(0.5) # Give the OS a moment to release the port
-    # ----------------
+    # # Manually open and clear the port before giving it to PyVESC
+    # temp_ser = serial.Serial(SERIAL_PORT, baudrate=115200, timeout=0.5)
+    # temp_ser.reset_input_buffer()
+    # temp_ser.reset_output_buffer()
+    # temp_ser.close() 
+    # time.sleep(1) # Give the OS a moment to release the port
+    # except Exception as e:
+    #     print(f"Port reset failed: {e}")
 
+    robust_init(SERIAL_PORT)
 
-    with VESC(serial_port=serial_port) as main:
+    with VESC(serial_port=SERIAL_PORT) as main:
         dual_drive_forward(main, DURATION)
 
 
