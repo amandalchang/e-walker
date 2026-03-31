@@ -39,11 +39,6 @@ def dual_drive_forward(motor, duration):
     motor.write(v_interface.encode(stop_msg))
 
 def robust_init(port):
-    # 1. Linux Kernel Reset
-    os.system(f"stty -F {port} -hupcl") # Toggle HUPCL
-    time.sleep(0.2)
-    
-    # 2. Flush the Physical Buffer
     ser = serial.Serial(port, 115200, timeout=0.1)
     ser.flushInput()
     ser.flushOutput()
