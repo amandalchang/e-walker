@@ -22,12 +22,12 @@ if __name__ == '__main__':
 
         # # Control Motor 2 (Remote/Slave via CAN)
         # # We create a message and specify the target CAN ID
-        # msg_motor_2 = SetDutyCycle(duty_cycle=0.2)
-        # msg_motor_2.can_id = 45  # The ID of your second motor
+        msg_motor_2 = SetDutyCycle(duty_cycle=0.2)
+        msg_motor_2.can_id = 45  # The ID of your second motor
         # time.sleep(duration)
-        # msg_motor_2 = SetDutyCycle(duty_cycle=0)
+        #msg_motor_2 = SetDutyCycle(duty_cycle=0)
     
         # # Send the encoded packet through the master
-        # master.write(master.encode(msg_motor_2))
+        #master.write(master.encode(msg_motor_2))
 
 
