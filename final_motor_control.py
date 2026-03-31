@@ -10,7 +10,7 @@ import os
 CAN_ID = 45
 SPEED = 0.2
 DURATION = 2
-SERIAL_PORT = '/dev/ttyACM0' 
+SERIAL_PORT = '/dev/ttyACM0'
 
 
 def dual_drive_forward(motor, duration):
@@ -60,6 +60,8 @@ if __name__ == '__main__':
 
     with VESC(serial_port=SERIAL_PORT) as main:
         dual_drive_forward(main, DURATION)
+
+    robust_init(SERIAL_PORT)
 
 
         
