@@ -1,4 +1,5 @@
-from pyvesc import VESC, SetDutyCycle
+from pyvesc import VESC
+from pyvesc.VESC.messages.setters import SetDutyCycle
 import serial
 import time
 from pynput import keyboard
