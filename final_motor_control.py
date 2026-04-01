@@ -8,7 +8,7 @@ import pyvesc.protocol.interface as v_interface
 import os
 
 CAN_ID = 45
-SPEED = 0.4
+SPEED = -0.3 # negative to that positive SPEED is clockwise 
 DURATION = 3
 SERIAL_PORT = '/dev/ttyACM0'
 
@@ -21,7 +21,7 @@ def drive_forward(motor,duration):
 
 def dual_drive_forward(motor, duration):
     start_time = time.time()
-    print("Driving Both Wheels Counterclockwise")
+    print("Going Forward: Right Wheel CW, Left Wheel CCW")
 
     #while loop to incorporate duration
     while time.time() - start_time < duration:
@@ -29,7 +29,7 @@ def dual_drive_forward(motor, duration):
         motor.set_duty_cycle(SPEED)
 
         # Send Message to Drive Secondary Motor
-        msg_motor_2 = SetDutyCycle(SPEED)
+        msg_motor_2 = SetDutyCycle(-SPEED)
         msg_motor_2.can_id = CAN_ID  # The ID of your second motor
         packet = v_interface.encode(msg_motor_2)
         motor.write(packet)
@@ -46,12 +46,12 @@ def dual_drive_forward(motor, duration):
 
 def dual_drive_backward(motor, duration):
     start_time = time.time()
-    print("Driving Both Wheels Clockwise")
+    print("Going Backward: Right Wheel CCW, Left Wheel CW")
 
     #while loop to incorporate duration
     while time.time() - start_time < duration:
         # Drive Main Motor
-        motor.set_duty_cycle(-SPEED)
+        motor.set_duty_cycle(SPEED)
 
         # Send Message to Drive Secondary Motor
         msg_motor_2 = SetDutyCycle(-SPEED)
@@ -71,7 +71,7 @@ def dual_drive_backward(motor, duration):
 
 def turn_left(motor, duration):
     start_time = time.time()
-    print("Turning Left")
+    print("Turning Left: Left Wheel CCW, Right Wheel CW")
 
     #while loop to incorporate duration
     while time.time() - start_time < duration:
@@ -96,7 +96,7 @@ def turn_left(motor, duration):
 
 def turn_right(motor, duration):
     start_time = time.time()
-    print("Turning Right")
+    print("Turning Right: Left Wheel CW, Right Wheel CeddCW")
 
     #while loop to incorporate duration
     while time.time() - start_time < duration:
@@ -126,7 +126,7 @@ def robust_init(port):
     ser.flushInput()
     ser.flushOutput()
     ser.close()
-    time.sleep(0.5)
+    time.sleep(1)
 
 def on_press(key, motor, duration):
     try:
