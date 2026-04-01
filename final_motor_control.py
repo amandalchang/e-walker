@@ -8,7 +8,7 @@ import pyvesc.protocol.interface as v_interface
 import os
 
 CAN_ID = 45
-SPEED = -0.3 # negative to that positive SPEED is clockwise 
+SPEED = -0.2 # negative to that positive SPEED is clockwise 
 DURATION = 3
 SERIAL_PORT = '/dev/ttyACM0'
 
@@ -76,7 +76,7 @@ def turn_left(motor, duration):
     #while loop to incorporate duration
     while time.time() - start_time < duration:
         # Drive Main Motor
-        motor.set_duty_cycle(-SPEED)
+        motor.set_duty_cycle(SPEED)
 
         # Send Message to Drive Secondary Motor
         msg_motor_2 = SetDutyCycle(SPEED)
@@ -101,7 +101,7 @@ def turn_right(motor, duration):
     #while loop to incorporate duration
     while time.time() - start_time < duration:
         # Drive Main Motor
-        motor.set_duty_cycle(SPEED)
+        motor.set_duty_cycle(-SPEED)
 
         # Send Message to Drive Secondary Motor
         msg_motor_2 = SetDutyCycle(-SPEED)
