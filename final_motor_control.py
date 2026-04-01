@@ -121,10 +121,6 @@ def turn_right(motor, duration):
 
 
 
-
-
-
-
 def robust_init(port):
     ser = serial.Serial(port, 115200, timeout=0.1)
     ser.flushInput()
@@ -151,26 +147,59 @@ def on_press(key, motor, duration):
     except Exception as e:
         print(f"Error: {e}")
 
-if __name__ == '__main__':
-    # # Manually open and clear the port before giving it to PyVESC
-    # temp_ser = serial.Serial(SERIAL_PORT, baudrate=115200, timeout=0.5)
-    # temp_ser.reset_input_buffer()
-    # temp_ser.reset_output_buffer()
-    # temp_ser.close() 
-    # time.sleep(1) # Give the OS a moment to release the port
-    # except Exception as e:
-    #     print(f"Port reset failed: {e}")
 
-    robust_init(SERIAL_PORT)
-
+def on_press(key, motor, duration):
     try:
-        with VESC(serial_port=SERIAL_PORT) as motor:
-                   # Use a listener to monitor key presses
-            with keyboard.Listener(on_press=lambda k: on_press(k, motor,DURATION)) as listener:
-                listener.join()
+        if key == keyboard.Key.right:
+            dual_drive_backward(motor,duration)
+        elif key == keyboard.Key.left:
+            dual_drive_backward(motor,duration)
+        elif key == keyboard.Key.space:
+            motor.set_duty_cycle(0)
+        elif key == keyboard.Key.esc:
+            # Stop the listener
+            return False
     except Exception as e:
-        robust_init(SERIAL_PORT)
- 
+        print(f"Error: {e}")
 
 
+def on_release(key, motor):
+    # When you let go of Right or Left, stop the motor
+    if key == keyboard.Key.right or key == keyboard.Key.left:
+        motor.set_duty_cycle(0)
+    
+    # Still use Esc to quit the whole script
+    if key == keyboard.Key.esc:
+        motor.set_duty_cycle(0) # Safety stop
+        return False
+
+
+
+if __name__ == '__main__':
+    robust_init(SERIAL_PORT)
+    
+    with VESC(serial_port=SERIAL_PORT) as motor:
+        print("Holding Right/Left drives. Releasing stops. Esc to quit.")
         
+        # We now pass TWO functions to the listener
+        with keyboard.Listener(
+            on_press=lambda k: on_press(k, motor,DURATION),
+            on_release=lambda k: on_release(k, motor)
+        ) as listener:
+            listener.join()
+
+
+
+# if __name__ == '__main__':
+
+#     robust_init(SERIAL_PORT)
+
+#     try:
+#         with VESC(serial_port=SERIAL_PORT) as motor:
+#                    # Use a listener to monitor key presses
+#             with keyboard.Listener(on_press=lambda k: on_press(k, motor,DURATION)) as listener:
+#                 listener.join()
+#     except Exception as e:
+#         robust_init(SERIAL_PORT)
+ 
+  
