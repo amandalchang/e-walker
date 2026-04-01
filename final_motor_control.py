@@ -8,7 +8,7 @@ import pyvesc.protocol.interface as v_interface
 import os
 
 CAN_ID = 45
-SPEED = 0.2
+SPEED = 0.3
 DURATION = 2
 SERIAL_PORT = '/dev/ttyACM0'
 
@@ -21,7 +21,7 @@ def drive_forward(motor,duration):
 
 def dual_drive_forward(motor, duration):
     start_time = time.time()
-    print("Driving Both Wheels Forward")
+    print("Driving Both Wheels Clockwise")
 
     #while loop to incorporate duration
     while time.time() - start_time < duration:
@@ -46,7 +46,7 @@ def dual_drive_forward(motor, duration):
 
 def dual_drive_backward(motor, duration):
     start_time = time.time()
-    print("Driving Both Wheels Backward")
+    print("Driving Both Wheels Counterclockwise")
 
     #while loop to incorporate duration
     while time.time() - start_time < duration:
