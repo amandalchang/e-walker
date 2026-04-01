@@ -51,10 +51,10 @@ def dual_drive_backward(motor, duration):
     #while loop to incorporate duration
     while time.time() - start_time < duration:
         # Drive Main Motor
-        motor.set_duty_cycle(SPEED)
+        motor.set_duty_cycle(-SPEED)
 
         # Send Message to Drive Secondary Motor
-        msg_motor_2 = SetDutyCycle(-SPEED)
+        msg_motor_2 = SetDutyCycle(SPEED)
         msg_motor_2.can_id = CAN_ID  # The ID of your second motor
         packet = v_interface.encode(msg_motor_2)
         motor.write(packet)
@@ -76,10 +76,10 @@ def turn_left(motor, duration):
     #while loop to incorporate duration
     while time.time() - start_time < duration:
         # Drive Main Motor
-        motor.set_duty_cycle(SPEED)
+        motor.set_duty_cycle(-SPEED)
 
         # Send Message to Drive Secondary Motor
-        msg_motor_2 = SetDutyCycle(SPEED)
+        msg_motor_2 = SetDutyCycle(-SPEED)
         msg_motor_2.can_id = CAN_ID  # The ID of your second motor
         packet = v_interface.encode(msg_motor_2)
         motor.write(packet)
@@ -101,10 +101,10 @@ def turn_right(motor, duration):
     #while loop to incorporate duration
     while time.time() - start_time < duration:
         # Drive Main Motor
-        motor.set_duty_cycle(-SPEED)
+        motor.set_duty_cycle(SPEED)
 
         # Send Message to Drive Secondary Motor
-        msg_motor_2 = SetDutyCycle(-SPEED)
+        msg_motor_2 = SetDutyCycle(SPEED)
         msg_motor_2.can_id = CAN_ID  # The ID of your second motor
         packet = v_interface.encode(msg_motor_2)
         motor.write(packet)
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     robust_init(SERIAL_PORT)
     
     with VESC(serial_port=SERIAL_PORT) as motor:
-        print("Holding Right/Left drives. Releasing stops. Esc to quit.")
+        print("Right - Forward. Left - Backward. Up - Turn Right. Down - Turn Left. Esc to quit.")
         
         # We now pass TWO functions to the listener
         with keyboard.Listener(
