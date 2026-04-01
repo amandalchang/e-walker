@@ -54,16 +54,16 @@ if(rangingData.measureType() == (uint8_t)uwb::MeasurementType::TWO_WAY)
         Serial.print("Azimuth (deg): ");
         Serial.println(azimuth);
 
-        // -------- Elevation --------
-        float elevation = twr[j].aoa_elevation / 128.0;
-        Serial.print("Elevation (deg): ");
-        Serial.println(elevation);
+        // // -------- Elevation --------
+        // float elevation = twr[j].aoa_elevation / 128.0;
+        // Serial.print("Elevation (deg): ");
+        // Serial.println(elevation);
 
-        // -------- Quality --------
-        Serial.print("Azimuth FOM: ");
-        Serial.println(twr[j].aoa_azimuth_fom);
+        // // -------- Quality --------
+        // Serial.print("Azimuth FOM: ");
+        // Serial.println(twr[j].aoa_azimuth_fom);
 
-        Serial.println("-----------------------------");
+        // Serial.println("-----------------------------");
       }
     }
   }
