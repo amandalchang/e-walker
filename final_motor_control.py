@@ -13,6 +13,12 @@ DURATION = 2
 SERIAL_PORT = '/dev/ttyACM0'
 
 
+def drive_forward(motor,duration):
+    print("forward")
+    motor.set_duty_cycle(0.1)
+    time.sleep(duration)
+    motor.set_duty_cycle(0)
+
 def dual_drive_forward(motor, duration):
     start_time = time.time()
     print("Driving Both Wheels Forward")
@@ -113,6 +119,12 @@ def turn_right(motor, duration):
     stop_msg.can_id = CAN_ID
     motor.write(v_interface.encode(stop_msg))
 
+
+
+
+
+
+
 def robust_init(port):
     ser = serial.Serial(port, 115200, timeout=0.1)
     ser.flushInput()
@@ -123,7 +135,8 @@ def robust_init(port):
 def on_press(key, motor, duration):
     try:
         if key == keyboard.Key.right:
-            dual_drive_forward(motor,duration)
+            #dual_drive_forward(motor,duration)
+            drive_forward(motor,duration)
         elif key == keyboard.Key.left:
             dual_drive_backward(motor,duration)
         elif key == keyboard.Key.up:
