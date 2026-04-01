@@ -154,6 +154,10 @@ def on_press(key, motor, duration):
             dual_drive_backward(motor,duration)
         elif key == keyboard.Key.left:
             dual_drive_backward(motor,duration)
+        elif key == keyboard.Key.up:
+            turn_left(motor,duration)
+        elif key == keyboard.Key.down:
+            turn_right(motor,duration)
         elif key == keyboard.Key.space:
             motor.set_duty_cycle(0)
         elif key == keyboard.Key.esc:
@@ -184,7 +188,6 @@ if __name__ == '__main__':
         # We now pass TWO functions to the listener
         with keyboard.Listener(
             on_press=lambda k: on_press(k, motor,DURATION),
-            on_release=lambda k: on_release(k, motor)
         ) as listener:
             listener.join()
 
