@@ -1,0 +1,11 @@
+pyserial
+pynput
+pythoncrc
+
+# pyvesc installation:
+# Change lines 41 & 42 regarding firmware 
+# version in the init section of 
+# .venv/lib/python3.13/site-packages/pyvesc/VESC/VESC.py
+# if version is None:
+#    version = "6.06" 
+git+https://github.com/LiamBindle/PyVESC
