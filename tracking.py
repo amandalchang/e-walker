@@ -4,7 +4,7 @@ import time
 print(serial.__file__)
 print(f"Has readline: {hasattr(serial.Serial, 'readline')}")
 
-port = "/dev/ttyACM1"
+port = "/dev/ttyACM0"
 baud_rate = 115200
 output_file = "serial_log.txt"
 

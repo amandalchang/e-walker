@@ -44,15 +44,15 @@ if(rangingData.measureType() == (uint8_t)uwb::MeasurementType::TWO_WAY)
 
   for(int j = 0; j < rangingData.available(); j++) {
       if(twr[j].status == 0 && twr[j].distance != 0xFFFF)
-      {
-        // -------- Distance --------
-        Serial.print("Distance: ");
-        Serial.println(twr[j].distance);
+      { Serial.println(twr[j].distance, twr[j].aoa_azimuth/128.0);
+        // // -------- Distance --------
+        // Serial.print("Distance: ");
+        // Serial.println(twr[j].distance);
 
-        // -------- Azimuth --------
-        float azimuth = twr[j].aoa_azimuth / 128.0;
-        Serial.print("Azimuth (deg): ");
-        Serial.println(azimuth);
+        // // -------- Azimuth --------
+        // float azimuth = twr[j].aoa_azimuth / 128.0;
+        // Serial.print("Azimuth (deg): ");
+        // Serial.println(azimuth);
 
         // // -------- Elevation --------
         // float elevation = twr[j].aoa_elevation / 128.0;
