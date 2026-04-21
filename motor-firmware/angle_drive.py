@@ -1,6 +1,7 @@
 import pyvesc
 from pyvesc import VESC
 from pyvesc.VESC.messages.setters import SetDutyCycle
+from pyvesc.VESC.messages.setters import SetRPM
 import serial
 import time
 import pyvesc.protocol.interface as v_interface 
@@ -13,7 +14,7 @@ SERIAL_PORT = '/dev/ttyACM0'
 FULL_CIRC = 59.69 
 WHEEL_CIRC = 18.8
 FULL_ROT = FULL_CIRC/WHEEL_CIRC
-RPM = 56
+RPM = 500
 
 def duration_calc():
     angle = int(input("Input Angle to Move:"))
@@ -29,10 +30,10 @@ def turn_right(motor, duration):
     #while loop to incorporate duration
     while time.time() - start_time < duration:
         # Drive Main Motor
-        motor.set_duty_cycle(SPEED)
+        motor.set_rpm(RPM)
 
         # Send Message to Drive Secondary Motor
-        msg_motor_2 = SetDutyCycle(SPEED)
+        msg_motor_2 = SetRPM(RPM)
         msg_motor_2.can_id = CAN_ID  # The ID of your second motor
         packet = v_interface.encode(msg_motor_2)
         motor.write(packet)
@@ -41,9 +42,9 @@ def turn_right(motor, duration):
 
     #Stop Motors after duration done
     print("Duration reached. Stopping motors.")
-    motor.set_duty_cycle(0)
+    motor.set_rpm(0)
     
-    stop_msg = SetDutyCycle(0)
+    stop_msg = SetRPM(0)
     stop_msg.can_id = CAN_ID
     motor.write(v_interface.encode(stop_msg))
 
