@@ -36,8 +36,8 @@
 // https://forum.arduino.cc/t/how-to-get-both-distance-and-angle-from-portenta-uwb-shield-stella-setup-in-twr/1430358/4
 void rangingHandler(UWBRangingData &rangingData) {
 
-Serial.print("GOT RANGING DATA - Type: ");
-Serial.println(rangingData.measureType());
+// Serial.print("GOT RANGING DATA - Type: ");
+// Serial.println(rangingData.measureType());
 
 if(rangingData.measureType() == (uint8_t)uwb::MeasurementType::TWO_WAY)
 {
@@ -50,25 +50,6 @@ for(int j = 0; j < rangingData.available(); j++)
     Serial.print(twr[j].distance);
     Serial.print(",");
     Serial.println(azimuth);
-    // // -------- Distance --------
-    // Serial.print("Distance: ");
-    // Serial.println(twr[j].distance);
-
-    // // -------- Azimuth --------
-    // float azimuth = twr[j].aoa_azimuth / 128.0;
-    // Serial.print("Azimuth (deg): ");
-    // Serial.println(azimuth);
-
-    // // -------- Elevation --------
-    // float elevation = twr[j].aoa_elevation / 128.0;
-    // Serial.print("Elevation (deg): ");
-    // Serial.println(elevation);
-
-    // // -------- Quality --------
-    // Serial.print("Azimuth FOM: ");
-    // Serial.println(twr[j].aoa_azimuth_fom);
-
-    // Serial.println("-----------------------------");
   }
 }
 }
