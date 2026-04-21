@@ -46,26 +46,29 @@ RangingMeasures twr = rangingData.twoWayRangingMeasure();
 for(int j = 0; j < rangingData.available(); j++)
 {
   if(twr[j].status == 0 && twr[j].distance != 0xFFFF)
-  {
-    // -------- Distance --------
-    Serial.print("Distance: ");
-    Serial.println(twr[j].distance);
-
-    // -------- Azimuth --------
-    float azimuth = twr[j].aoa_azimuth / 128.0;
-    Serial.print("Azimuth (deg): ");
+  { float azimuth = twr[j].aoa_azimuth / 128.0;
+    Serial.print(twr[j].distance);
+    Serial.print(",");
     Serial.println(azimuth);
+    // // -------- Distance --------
+    // Serial.print("Distance: ");
+    // Serial.println(twr[j].distance);
 
-    // -------- Elevation --------
-    float elevation = twr[j].aoa_elevation / 128.0;
-    Serial.print("Elevation (deg): ");
-    Serial.println(elevation);
+    // // -------- Azimuth --------
+    // float azimuth = twr[j].aoa_azimuth / 128.0;
+    // Serial.print("Azimuth (deg): ");
+    // Serial.println(azimuth);
 
-    // -------- Quality --------
-    Serial.print("Azimuth FOM: ");
-    Serial.println(twr[j].aoa_azimuth_fom);
+    // // -------- Elevation --------
+    // float elevation = twr[j].aoa_elevation / 128.0;
+    // Serial.print("Elevation (deg): ");
+    // Serial.println(elevation);
 
-    Serial.println("-----------------------------");
+    // // -------- Quality --------
+    // Serial.print("Azimuth FOM: ");
+    // Serial.println(twr[j].aoa_azimuth_fom);
+
+    // Serial.println("-----------------------------");
   }
 }
 }
