@@ -6,8 +6,8 @@ from collections import deque
 port = "/dev/ttyACM0"
 baud_rate = 115200
 
-TURN_VAL = 10
-THRESHOLD_DIST = 100
+TURN_VAL = 5
+THRESHOLD_DIST = 20
 VALID_VAL = 45
 
 class State(Enum):
@@ -20,7 +20,7 @@ class State(Enum):
 class WalkerBot:
     def __init__(self, angle_window=10, dist_window=10):
         self.current_state = State.STOP
-        self.angle = 0 #???
+        self.angle = 0
         self.dist = 0
         self.angle_window = deque(maxlen=angle_window)
         self.dist_window = deque(maxlen=dist_window)
@@ -113,7 +113,7 @@ class WalkerBot:
         self.dist_window.append(raw_dist)
         self.angle_window.append(raw_angle)
 
-        if len(self.dist_window) == 0 or len(self.ang_window) == 0:
+        if len(self.dist_window) == 0 or len(self.angle_window) == 0:
             return False
 
         self.dist = sum(self.dist_window) / len(self.dist_window)
