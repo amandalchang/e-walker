@@ -28,7 +28,7 @@ class WalkerController():
         for port in ports:
             print(port.device, port.description, port.manufacturer, port.vid)
             # figure out what the vesc actually says, i just did not the arduino for now
-            if port.manufacturer and "Arduino" not in port.manufacturer: 
+            if port.vid and port.vid == 0x1155: 
                 return port.device
             
         return None
