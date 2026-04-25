@@ -2,8 +2,8 @@ import serial
 import time
 from enum import Enum
 from collections import deque
+from serial.tools import list_ports
 
-port = "/dev/ttyACM0"
 baud_rate = 115200
 
 TURN_VAL = 5
@@ -18,7 +18,7 @@ class State(Enum):
     STOP = "stop"
 
 class WalkerBot:
-    def __init__(self, angle_window=10, dist_window=10):
+    def __init__(self, angle_window=10, dist_window=5):
         self.current_state = State.STOP
         self.angle = 0
         self.dist = 0
@@ -70,7 +70,6 @@ class WalkerBot:
                     self.current_state = State.STOP
                 elif self.angle > TURN_VAL:
                     self.current_state = State.RIGHT
-                elif self.angle < -TURN_VAL:
                     self.current_state = State.LEFT
                 elif abs(self.angle) < TURN_VAL:
                     self.current_state = State.FORWARD
@@ -120,11 +119,24 @@ class WalkerBot:
         self.angle = sum(self.angle_window) / len(self.angle_window)
 
         return True
+    
+def find_portenta():
+    ports = list_ports.comports()
 
-# --- Main Execution ---
+    for port in ports:
+        print(port.device, port.description, port.manufacturer, port.vid)
+        if port.vid and port.vid == 0x2341:  # Arduino VID
+            return port.device
+        
+    return None
+
 if __name__ == "__main__":
     bot = WalkerBot()
     try:
+        port = find_portenta()
+        if port is None:
+            raise RuntimeError("Portenta port not found")
+        
         bot.ser = serial.Serial(port, baud_rate, timeout=1)
         bot.ser.flush()
         print(f"Connected to {port}.")

@@ -6,15 +6,26 @@ import serial
 import time
 import pyvesc.protocol.interface as v_interface 
 import os
+from serial.tools import list_ports
 
 CAN_ID = 45
-SERIAL_PORT = '/dev/ttyACM0'
-
+# moved serial port definition to main loop
 
 FULL_CIRC = 59.69 
 WHEEL_CIRC = 18.8
 FULL_ROT = FULL_CIRC/WHEEL_CIRC
-RPM = 500
+RPM = 200
+
+def find_vesc():
+    ports = list_ports.comports()
+
+    for port in ports:
+        print(port.device, port.description, port.manufacturer, port.vid)
+        # figure out what the vesc actually says, i just did not the arduino for now
+        if port.manufacturer and "Arduino" not in port.manufacturer: 
+            return port.device
+        
+    return None
 
 def duration_calc():
     angle = int(input("Input Angle to Move:"))
@@ -30,7 +41,7 @@ def turn_right(motor, duration):
     #while loop to incorporate duration
     while time.time() - start_time < duration:
         # Drive Main Motor
-        motor.set_rpm(RPM)
+        motor.set_rpm(-RPM)
 
         # Send Message to Drive Secondary Motor
         msg_motor_2 = SetRPM(RPM)
@@ -52,7 +63,10 @@ def turn_right(motor, duration):
 
 
 if __name__ == '__main__':
-
+    SERIAL_PORT = find_vesc()
+    if SERIAL_PORT is None:
+        print("No VESC found. Exiting.")
+        exit(1)
     with VESC(serial_port=SERIAL_PORT) as motor:
         duration = duration_calc()
         print(f"Duration: {duration} seconds")
