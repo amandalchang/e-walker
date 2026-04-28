@@ -20,7 +20,7 @@ def find_portenta():
 
     for port in ports:
         print(port.device, port.description, port.manufacturer, port.vid)
-        if port.vid and port.vid == 0x2341:
+        if port.manufacturer and "Arduino" in port.manufacturer: 
             return port.device
 
     return None
@@ -47,6 +47,9 @@ class WalkerBot:
         self.VMAX = 0.6
         self.DEADZONE_SPIN_W = 0.2
 
+        self.state_streak = 0
+        self.STATE_CONFIRM_COUNT = 3
+
         self.w = 0
         self.v = 0
 
@@ -58,11 +61,7 @@ class WalkerBot:
 
         while True:
             data = self._read_serial()
-            if data is None:
-                continue
-
-            raw_dist, raw_angle = data
-            self._update_filters(raw_dist, raw_angle)
+            if data: self._update_filters(*data)
             self._update_state()
 
             if self.current_state == State.DEADZONE:
@@ -88,28 +87,33 @@ class WalkerBot:
         except (ValueError, UnicodeDecodeError):
             return None
 
-    def _update_filters(self, raw_dist, raw_angle):
+    def _update_filters(self, raw_dist: float, raw_angle: float):
         self.dist_window.append(raw_dist)
         self.angle_window.append(raw_angle)
 
         if np.median(list(map(abs, self.angle_window))) > VALID_ANGLE_THRESHOLD:
             self.angle = ERR_VAL
         else:
-            self.angle = sum(self.angle_window) / len(self.angle_window)
+            # self.angle = sum(self.angle_window) / len(self.angle_window)
+            self.angle = np.median(list(self.angle_window))
 
-        self.dist = sum(self.dist_window) / len(self.dist_window)
+        #self.dist = sum(self.dist_window) / len(self.dist_window)
+        self.dist = np.median(list(self.dist_window))
         
 
         if DEBUG:
             print(f"Dist: {self.dist}, Angle: {self.angle}")
 
     def _update_state(self):
-        if self.angle == ERR_VAL:
-            self.current_state = State.DEADZONE
-            if DEBUG: print("STATE: DEADZONE")
+        new_state = State.DEADZONE if self.angle == ERR_VAL else State.VALID
+        if DEBUG: print("New State: " + new_state.name)
+        if new_state == self.current_state:
+            self.state_streak = 0
         else:
-            self.current_state = State.VALID
-            if DEBUG: print("STATE: VALID")
+            self.state_streak += 1
+            if self.state_streak >= self.STATE_CONFIRM_COUNT:
+                self.current_state = new_state
+                self.state_streak = 0
 
     def _behavior_deadzone(self):
         print("Deadzone: spinning")
@@ -119,16 +123,21 @@ class WalkerBot:
         print("start valid behavior")
         start_dist = self.dist
         # move forward to determine whether the stella is in front or behind
-        # self.walker_controller.drive(w=0, v=0.2, PRINT_ONLY=PRINT_ONLY)
-        # input("i moved it forward.")
-        # self.walker_controller.drive(w=0, v=0, PRINT_ONLY=PRINT_ONLY)
+        self.walker_controller.drive(w=0, v=0.2, PRINT_ONLY=PRINT_ONLY)
+        time.sleep(1)
+        self.walker_controller.drive(w=0, v=0, PRINT_ONLY=PRINT_ONLY)
+        self.ser.reset_input_buffer()
+        for _ in range(3):
+            data = self._read_serial()
+            if data: self._update_filters(*data)
+            time.sleep(0.05)
+        
         if start_dist > self.dist: 
             print("Confirmed Stella in front!")
             self._behavior_forward()
         else:
-            self._behavior_forward()
-            # print("Stella behind, now spinning")
-            # self.spin_180() #spin 180; deadzone to non-deadzone
+            print("Stella behind, now spinning")
+            self.spin_180() #spin 180; deadzone to non-deadzone
 
     def spin_180(self):
         """"""
@@ -137,8 +146,9 @@ class WalkerBot:
 
     def _behavior_forward(self):
         print("starting forward behavior")
-        self.w = np.clip(self.angle * self.KP, -self.WMAX, self.WMAX)
-        self.v = np.clip(np.cos(self.angle) * self.dist, -self.VMAX, self.VMAX)
+        angle_rad = np.radians(self.angle)
+        self.w = np.clip(angle_rad * self.KP, -self.WMAX, self.WMAX)
+        self.v = np.clip(np.cos(angle_rad) * self.dist, -self.VMAX, self.VMAX)
 
         if self.dist < THRESHOLD_DIST: # if im already there
             self.w = 0
