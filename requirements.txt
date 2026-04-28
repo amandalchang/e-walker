@@ -1,6 +1,7 @@
 pyserial
 pynput
 pythoncrc
+numpy
 
 # pyvesc installation:
 # Change lines 41 & 42 regarding firmware 
