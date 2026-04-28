@@ -55,7 +55,7 @@ class WalkerController():
         right_rpm = round(right_speed / self.wheel_diameter * pi * 60)
         left_rpm = round(left_speed / self.wheel_diameter * pi * 60)
 
-        print(f"right rpm: {right_rpm}, left rpm: {left_rpm}")
+        # print(f"right rpm: {right_rpm}, left rpm: {left_rpm}")
 
         if not PRINT_ONLY: 
             self.set_motor_RPMs(right_rpm, left_rpm)

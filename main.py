@@ -11,9 +11,10 @@ baud_rate = 115200
 TURN_VAL = 5
 THRESHOLD_DIST = 20
 VALID_ANGLE_THRESHOLD = 45
-DEBUG = True
+DEBUG = False
 PRINT_ONLY = True
-ERR_VAL = 10000000000
+ERR_VAL = 400
+ANGLE_MONITOR = True
 
 def find_portenta():
     ports = list_ports.comports()
@@ -100,8 +101,10 @@ class WalkerBot:
         #self.dist = sum(self.dist_window) / len(self.dist_window)
         self.dist = np.median(list(self.dist_window))
         
+        if ANGLE_MONITOR:
+            print(f"ANGLE LIST: {sorted(list(self.angle_window))}")
 
-        if DEBUG:
+        if DEBUG | ANGLE_MONITOR:
             print(f"Dist: {self.dist}, Angle: {self.angle}")
 
     def _update_state(self):
@@ -116,11 +119,11 @@ class WalkerBot:
                 self.state_streak = 0
 
     def _behavior_deadzone(self):
-        print("Deadzone: spinning")
+        if DEBUG: print("Deadzone: spinning")
         self.walker_controller.drive(w=self.DEADZONE_SPIN_W, v=0, PRINT_ONLY=PRINT_ONLY)
 
     def _behavior_valid(self):
-        print("start valid behavior")
+        if DEBUG: print("start valid behavior")
         start_dist = self.dist
         # move forward to determine whether the stella is in front or behind
         self.walker_controller.drive(w=0, v=0.2, PRINT_ONLY=PRINT_ONLY)
@@ -133,19 +136,19 @@ class WalkerBot:
             time.sleep(0.05)
         
         if start_dist > self.dist: 
-            print("Confirmed Stella in front!")
+            if DEBUG: print("Confirmed Stella in front!")
             self._behavior_forward()
         else:
-            print("Stella behind, now spinning")
+            if DEBUG: print("Stella behind, now spinning")
             self.spin_180() #spin 180; deadzone to non-deadzone
 
     def spin_180(self):
         """"""
-        print("spinning 180")
+        if DEBUG: print("spinning 180")
         self._behavior_deadzone() # placeholder?
 
     def _behavior_forward(self):
-        print("starting forward behavior")
+        if DEBUG: print("starting forward behavior")
         angle_rad = np.radians(self.angle)
         self.w = np.clip(angle_rad * self.KP, -self.WMAX, self.WMAX)
         self.v = np.clip(np.cos(angle_rad) * self.dist, -self.VMAX, self.VMAX)
