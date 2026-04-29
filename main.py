@@ -16,6 +16,8 @@ PRINT_ONLY = True
 ERR_VAL = 400
 ANGLE_MONITOR = False
 
+# TODO: spin 180 in the direction you came from
+
 def find_portenta():
     ports = list_ports.comports()
 
@@ -63,7 +65,7 @@ class WalkerBot:
         if self.ser is None:
             raise RuntimeError("Serial not initialized")
 
-        print("Bot running...")
+        print("Walker start...")
 
         while True:
             data = self._read_serial()
@@ -87,7 +89,7 @@ class WalkerBot:
                 return None
 
             dist, angle = map(float, line.split(","))
-            if DEBUG:
+            if ANGLE_MONITOR:
                 print(f"Raw Dist: {dist}, Raw Angle: {angle}")
             return dist, angle
 
@@ -116,22 +118,19 @@ class WalkerBot:
 
     def _update_state(self):
         new_state = State.DEADZONE if self.angle == ERR_VAL else State.VALID
-        if DEBUG: print("New State: " + new_state.name)
         if new_state == self.current_state:
             self.state_streak = 0
         else:
             self.state_streak += 1
             if self.state_streak >= self.STATE_CONFIRM_COUNT:
                 if new_state == State.DEADZONE:
-                    print("DEADZONE REACHED")
                     self.dist_delta_window.clear()
                     self.prev_dist = None
                 self.current_state = new_state
                 self.state_streak = 0
 
     def _behavior_deadzone(self):
-        print("Deadzone: spinning")
-        if DEBUG: print("Deadzone: spinning")
+        if DEBUG: print("deadzone behavior")
         self.w = 0 if self.dist < THRESHOLD_DIST else self.DEADZONE_SPIN_W
         self.v = 0
         self.walker_controller.drive(self.w, self.v, PRINT_ONLY=PRINT_ONLY)
@@ -149,20 +148,17 @@ class WalkerBot:
 
         if avg_delta < 0:  # distance shrinking — target approaching or we're approaching target
             self._behavior_forward()
-            print("foward behavior")
         elif avg_delta > 2:  # distance growing with hysteresis band
             self.spin_180()
-            print("spin behavior")
 
     def spin_180(self):
-        """"""
         if DEBUG: print("spinning 180")
         self.w = 0 if self.dist < THRESHOLD_DIST else self.DEADZONE_SPIN_W
         self.v = 0
         self.walker_controller.drive(self.w, self.v, PRINT_ONLY=PRINT_ONLY)
 
     def _behavior_forward(self):
-        if DEBUG: print("starting forward behavior")
+        if DEBUG: print("forward behavior")
         angle_rad = np.radians(self.angle)
         # self.w = np.clip(angle_rad * self.KP, -self.WMAX, self.WMAX)
         # self.v = np.clip(np.cos(angle_rad) * self.dist, -self.VMAX, self.VMAX)
