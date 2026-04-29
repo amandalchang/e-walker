@@ -11,17 +11,18 @@ baud_rate = 115200
 TURN_VAL = 5
 THRESHOLD_DIST = 20
 VALID_ANGLE_THRESHOLD = 45
-DEBUG = False
+DEBUG = True
 PRINT_ONLY = True
 ERR_VAL = 400
-ANGLE_MONITOR = True
+ANGLE_MONITOR = False
 
 def find_portenta():
     ports = list_ports.comports()
 
     for port in ports:
         print(port.device, port.description, port.manufacturer, port.vid)
-        if port.manufacturer and "Arduino" in port.manufacturer: 
+        if port.description and "Portenta" in port.description:
+            print(f"Connecting to {port.description}") 
             return port.device
 
     return None
@@ -51,6 +52,9 @@ class WalkerBot:
         self.state_streak = 0
         self.STATE_CONFIRM_COUNT = 3
 
+        self.prev_dist = None
+        self.dist_delta_window = deque(maxlen=5)
+
         self.w = 0
         self.v = 0
 
@@ -62,14 +66,15 @@ class WalkerBot:
 
         while True:
             data = self._read_serial()
-            if data: self._update_filters(*data)
-            self._update_state()
+            if data:
+                self._update_filters(*data)
+                self._update_state()
 
-            if self.current_state == State.DEADZONE:
-                self._behavior_deadzone()
+                if self.current_state == State.DEADZONE:
+                    self._behavior_deadzone()
 
-            elif self.current_state == State.VALID:
-                self._behavior_valid()
+                elif self.current_state == State.VALID:
+                    self._behavior_valid()
 
     def _read_serial(self):
         if not self.ser or self.ser.in_waiting == 0:
@@ -90,19 +95,18 @@ class WalkerBot:
 
     def _update_filters(self, raw_dist: float, raw_angle: float):
         self.dist_window.append(raw_dist)
-        self.angle_window.append(raw_angle)
+        if abs(raw_angle) < VALID_ANGLE_THRESHOLD:
+            self.angle_window.append(raw_angle)
 
-        if np.median(list(map(abs, self.angle_window))) > VALID_ANGLE_THRESHOLD:
+        if len(self.angle_window) == 0:
             self.angle = ERR_VAL
         else:
-            # self.angle = sum(self.angle_window) / len(self.angle_window)
             self.angle = np.median(list(self.angle_window))
 
-        #self.dist = sum(self.dist_window) / len(self.dist_window)
         self.dist = np.median(list(self.dist_window))
         
         if ANGLE_MONITOR:
-            print(f"ANGLE LIST: {sorted(list(self.angle_window))}")
+            print(f"ANGLE LIST: {list(self.angle_window)}")
 
         if DEBUG | ANGLE_MONITOR:
             print(f"Dist: {self.dist}, Angle: {self.angle}")
@@ -122,25 +126,49 @@ class WalkerBot:
         if DEBUG: print("Deadzone: spinning")
         self.walker_controller.drive(w=self.DEADZONE_SPIN_W, v=0, PRINT_ONLY=PRINT_ONLY)
 
-    def _behavior_valid(self):
-        if DEBUG: print("start valid behavior")
-        start_dist = self.dist
-        # move forward to determine whether the stella is in front or behind
-        self.walker_controller.drive(w=0, v=0.2, PRINT_ONLY=PRINT_ONLY)
-        time.sleep(1)
-        self.walker_controller.drive(w=0, v=0, PRINT_ONLY=PRINT_ONLY)
-        self.ser.reset_input_buffer()
-        for _ in range(3):
-            data = self._read_serial()
-            if data: self._update_filters(*data)
-            time.sleep(0.05)
+    # def _behavior_valid(self):
+    #     if DEBUG: print("start valid behavior")
+    #     start_dist = self.dist
+    #     # move forward to determine whether the stella is in front or behind
+    #     self.walker_controller.drive(w=0, v=0.2, PRINT_ONLY=PRINT_ONLY)
+    #     time.sleep(1)
+    #     self.walker_controller.drive(w=0, v=0, PRINT_ONLY=PRINT_ONLY)
+    #     self.ser.reset_input_buffer()
+    #     for _ in range(3):
+    #         data = self._read_serial()
+    #         if data: self._update_filters(*data)
+    #         time.sleep(2)
         
-        if start_dist > self.dist: 
-            if DEBUG: print("Confirmed Stella in front!")
+    #     if start_dist > self.dist: 
+    #         if DEBUG: print("Confirmed Stella in front!")
+    #         self._behavior_forward()
+    #     else:
+    #         if DEBUG: print("Stella behind, now spinning")
+    #         self.spin_180() #spin 180; deadzone to non-deadzone
+    def _behavior_valid(self):
+        if self.prev_dist is not None:
+            self.dist_delta_window.append(self.dist - self.prev_dist)
+            print(self.dist - self.prev_dist)
+        self.prev_dist = self.dist
+
+        # need a full window before making a decision
+        if len(self.dist_delta_window) < self.dist_delta_window.maxlen:
+            print("Getting full window")
+            self.walker_controller.drive(w=0, v=0, PRINT_ONLY=PRINT_ONLY)
+            return
+
+        avg_delta = np.median(list(self.dist_delta_window))
+
+        if avg_delta < 0:  # distance shrinking — target approaching or we're approaching target
             self._behavior_forward()
-        else:
-            if DEBUG: print("Stella behind, now spinning")
-            self.spin_180() #spin 180; deadzone to non-deadzone
+            print("foward behavior")
+        elif avg_delta > 2:  # distance growing with hysteresis band
+            self.spin_180()
+            print("spin behavior")
+        else:  # roughly stable distance — just hold
+            print(self.dist - self.prev_dist)
+            self.walker_controller.drive(w=0, v=0, PRINT_ONLY=PRINT_ONLY)
+            print("stable distance")
 
     def spin_180(self):
         """"""
