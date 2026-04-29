@@ -101,5 +101,5 @@ void loop() {
   /* Only the Portenta C33 has an RGB LED. */
   digitalWrite(LEDR, !digitalRead(LEDR));
 #endif
-  delay(1000);
+  delay(10000);
 }
