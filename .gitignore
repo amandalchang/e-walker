@@ -1,2 +1,4 @@
 .DS_Store
 serial_log.txt
+*.pyc
+__pycache__/
