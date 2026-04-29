@@ -9,9 +9,9 @@ from motor_firmware.walker_controller import WalkerController
 baud_rate = 115200
 
 TURN_VAL = 5
-THRESHOLD_DIST = 20
+THRESHOLD_DIST = 10
 VALID_ANGLE_THRESHOLD = 45
-DEBUG = False
+DEBUG = True
 PRINT_ONLY = True
 ERR_VAL = 400
 ANGLE_MONITOR = False
@@ -50,7 +50,7 @@ class WalkerBot:
         self.KV = 0.0035
         self.WMAX = 0.6
         self.VMAX = 0.6
-        self.DEADZONE_SPIN_W = 0.2
+        self.DEADZONE_SPIN_W = 0.1
 
         self.state_streak = 0
         self.STATE_CONFIRM_COUNT = 3
@@ -146,7 +146,7 @@ class WalkerBot:
 
         avg_delta = np.median(list(self.dist_delta_window))
 
-        if avg_delta < 0:  # distance shrinking — target approaching or we're approaching target
+        if avg_delta < -2:  # distance shrinking — target approaching or we're approaching target
             self._behavior_forward()
         elif avg_delta > 2:  # distance growing with hysteresis band
             self.spin_180()
