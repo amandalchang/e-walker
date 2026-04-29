@@ -9,12 +9,13 @@ from motor_firmware.walker_controller import WalkerController
 baud_rate = 115200
 
 TURN_VAL = 5
-THRESHOLD_DIST = 10
+THRESHOLD_DIST = 100
 VALID_ANGLE_THRESHOLD = 45
 DEBUG = True
-PRINT_ONLY = True
+PRINT_ONLY = False
 ERR_VAL = 400
 ANGLE_MONITOR = False
+PRINT_VELOCITIES = True
 
 # TODO: spin 180 in the direction you came from
 
@@ -46,11 +47,12 @@ class WalkerBot:
         self.ser = None
         self.walker_controller = WalkerController()
 
-        self.KP = 0.5
+        self.KW = 0.5
         self.KV = 0.0035
-        self.WMAX = 0.6
-        self.VMAX = 0.6
-        self.DEADZONE_SPIN_W = 0.1
+        self.WMAX = 2
+        self.VMAX = 1.5
+        self.DEADZONE_SPIN_W = -1.6
+        self.DEADZONE_SPIN_V = 0.3
 
         self.state_streak = 0
         self.STATE_CONFIRM_COUNT = 3
@@ -61,6 +63,8 @@ class WalkerBot:
         self.w = 0
         self.v = 0
 
+        self.start = True
+
     def run(self):
         if self.ser is None:
             raise RuntimeError("Serial not initialized")
@@ -70,13 +74,20 @@ class WalkerBot:
         while True:
             data = self._read_serial()
             if data:
+                print("I got data")
                 self._update_filters(*data)
                 self._update_state()
 
                 if self.current_state == State.DEADZONE:
-                    self._behavior_deadzone()
+                    print("deadzone")
+                    self.walker_controller.drive(0, 0, PRINT_ONLY=PRINT_ONLY)
+                    # self._behavior_deadzone()
 
                 elif self.current_state == State.VALID:
+                    print("valid")
+                    # if self.start:
+                    #     self.walker_controller.drive(w=0, v=0.1, PRINT_ONLY=PRINT_ONLY)
+                    #     self.start = False
                     self._behavior_valid()
 
     def _read_serial(self):
@@ -110,8 +121,8 @@ class WalkerBot:
 
         self.dist = np.median(list(self.dist_window))
         
-        if ANGLE_MONITOR:
-            print(f"ANGLE LIST: {list(self.angle_window)}")
+        # if ANGLE_MONITOR:
+        #     print(f"ANGLE LIST: {list(self.angle_window)}")
 
         if DEBUG | ANGLE_MONITOR:
             print(f"Dist: {self.dist}, Angle: {self.angle}")
@@ -132,7 +143,7 @@ class WalkerBot:
     def _behavior_deadzone(self):
         if DEBUG: print("deadzone behavior")
         self.w = 0 if self.dist < THRESHOLD_DIST else self.DEADZONE_SPIN_W
-        self.v = 0
+        self.v = 0 if self.dist < THRESHOLD_DIST else self.DEADZONE_SPIN_V
         self.walker_controller.drive(self.w, self.v, PRINT_ONLY=PRINT_ONLY)
 
     def _behavior_valid(self):
@@ -154,7 +165,7 @@ class WalkerBot:
     def spin_180(self):
         if DEBUG: print("spinning 180")
         self.w = 0 if self.dist < THRESHOLD_DIST else self.DEADZONE_SPIN_W
-        self.v = 0
+        self.v = 0 if self.dist < THRESHOLD_DIST else self.DEADZONE_SPIN_V
         self.walker_controller.drive(self.w, self.v, PRINT_ONLY=PRINT_ONLY)
 
     def _behavior_forward(self):
@@ -164,7 +175,7 @@ class WalkerBot:
         # self.v = np.clip(np.cos(angle_rad) * self.dist, -self.VMAX, self.VMAX)
         distance_error = self.dist - THRESHOLD_DIST
         self.v = np.clip(distance_error * self.KV, 0, self.VMAX)
-        self.w = np.clip(angle_rad * self.KP, -self.WMAX, self.WMAX)
+        self.w = np.clip(angle_rad * self.KW, -self.WMAX, self.WMAX)
 
         if self.dist < THRESHOLD_DIST: # if im already there
             self.w = 0

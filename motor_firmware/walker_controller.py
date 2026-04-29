@@ -20,7 +20,7 @@ class WalkerController():
     def __init__(self):
         self.serial_port = self.find_vesc()
         self.VMAX = 2
-        self.WMAX = 2
+        self.WMAX = 3
 
         if self.serial_port is None:
             print("No VESC found. Exiting.")
@@ -79,9 +79,9 @@ class WalkerController():
 
         if not PRINT_ONLY: 
             self.set_motor_RPMs(right_rpm, left_rpm)
-            print("Actually running")
-            print(f"Right RPM: {right_rpm}")
-            print(f"Left RPM: {left_rpm}")
+            # print("Actually running")
+            # print(f"Right RPM: {right_rpm}")
+            # print(f"Left RPM: {left_rpm}")
 
 
 
@@ -103,10 +103,14 @@ if __name__ == "__main__":
     #         walker_controller.send_heartbeat(interval)
     #         last_heartbeat = current_time
 
-    for i in range(12):
+    # for i in range(4):
+    #     repeat_drive(4, 0) 
+    # -1.3 and 0.2 spin it in a nice circle 
+    # -1.6 & -0.3
+    for i in range(6): # 5 seconds at 2 is a full rotation
         repeat_drive(0, 0.7)
-    for i in range(12):
-        repeat_drive(0, -0.7)
+    # for i in range(10): # 5 seconds at 2 is a full rotation
+    #     repeat_drive(0, -0.3)
     print("stop")
     walker_controller.drive(0, 0)
 
