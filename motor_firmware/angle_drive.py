@@ -68,7 +68,13 @@ if __name__ == '__main__':
         print("No VESC found. Exiting.")
         exit(1)
     with VESC(serial_port=SERIAL_PORT) as motor:
-        duration = duration_calc()
-        print(f"Duration: {duration} seconds")
+        #duration = duration_calc()
+        #print(f"Duration: {duration} seconds")
         
-        turn_right(motor,duration)
+        #turn_right(motor,duration)
+
+            msg_motor_2 = SetRPM(RPM)
+            msg_motor_2.can_id = CAN_ID  # The ID of your second motor
+            packet = v_interface.encode(msg_motor_2)
+            motor.write(packet)
+
