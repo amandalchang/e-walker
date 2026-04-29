@@ -11,7 +11,7 @@ baud_rate = 115200
 TURN_VAL = 5
 THRESHOLD_DIST = 20
 VALID_ANGLE_THRESHOLD = 45
-DEBUG = True
+DEBUG = False
 PRINT_ONLY = True
 ERR_VAL = 400
 ANGLE_MONITOR = False
@@ -44,7 +44,8 @@ class WalkerBot:
         self.ser = None
         self.walker_controller = WalkerController()
 
-        self.KP = 10
+        self.KP = 0.5
+        self.KV = 0.0035
         self.WMAX = 0.6
         self.VMAX = 0.6
         self.DEADZONE_SPIN_W = 0.2
@@ -97,6 +98,8 @@ class WalkerBot:
         self.dist_window.append(raw_dist)
         if abs(raw_angle) < VALID_ANGLE_THRESHOLD:
             self.angle_window.append(raw_angle)
+        else:
+            self.angle_window.clear()
 
         if len(self.angle_window) == 0:
             self.angle = ERR_VAL
@@ -119,41 +122,26 @@ class WalkerBot:
         else:
             self.state_streak += 1
             if self.state_streak >= self.STATE_CONFIRM_COUNT:
+                if new_state == State.DEADZONE:
+                    print("DEADZONE REACHED")
+                    self.dist_delta_window.clear()
+                    self.prev_dist = None
                 self.current_state = new_state
                 self.state_streak = 0
 
     def _behavior_deadzone(self):
+        print("Deadzone: spinning")
         if DEBUG: print("Deadzone: spinning")
-        self.walker_controller.drive(w=self.DEADZONE_SPIN_W, v=0, PRINT_ONLY=PRINT_ONLY)
+        self.w = 0 if self.dist < THRESHOLD_DIST else self.DEADZONE_SPIN_W
+        self.v = 0
+        self.walker_controller.drive(self.w, self.v, PRINT_ONLY=PRINT_ONLY)
 
-    # def _behavior_valid(self):
-    #     if DEBUG: print("start valid behavior")
-    #     start_dist = self.dist
-    #     # move forward to determine whether the stella is in front or behind
-    #     self.walker_controller.drive(w=0, v=0.2, PRINT_ONLY=PRINT_ONLY)
-    #     time.sleep(1)
-    #     self.walker_controller.drive(w=0, v=0, PRINT_ONLY=PRINT_ONLY)
-    #     self.ser.reset_input_buffer()
-    #     for _ in range(3):
-    #         data = self._read_serial()
-    #         if data: self._update_filters(*data)
-    #         time.sleep(2)
-        
-    #     if start_dist > self.dist: 
-    #         if DEBUG: print("Confirmed Stella in front!")
-    #         self._behavior_forward()
-    #     else:
-    #         if DEBUG: print("Stella behind, now spinning")
-    #         self.spin_180() #spin 180; deadzone to non-deadzone
     def _behavior_valid(self):
         if self.prev_dist is not None:
             self.dist_delta_window.append(self.dist - self.prev_dist)
-            print(self.dist - self.prev_dist)
         self.prev_dist = self.dist
 
-        # need a full window before making a decision
         if len(self.dist_delta_window) < self.dist_delta_window.maxlen:
-            print("Getting full window")
             self.walker_controller.drive(w=0, v=0, PRINT_ONLY=PRINT_ONLY)
             return
 
@@ -165,21 +153,22 @@ class WalkerBot:
         elif avg_delta > 2:  # distance growing with hysteresis band
             self.spin_180()
             print("spin behavior")
-        else:  # roughly stable distance — just hold
-            print(self.dist - self.prev_dist)
-            self.walker_controller.drive(w=0, v=0, PRINT_ONLY=PRINT_ONLY)
-            print("stable distance")
 
     def spin_180(self):
         """"""
         if DEBUG: print("spinning 180")
-        self._behavior_deadzone() # placeholder?
+        self.w = 0 if self.dist < THRESHOLD_DIST else self.DEADZONE_SPIN_W
+        self.v = 0
+        self.walker_controller.drive(self.w, self.v, PRINT_ONLY=PRINT_ONLY)
 
     def _behavior_forward(self):
         if DEBUG: print("starting forward behavior")
         angle_rad = np.radians(self.angle)
+        # self.w = np.clip(angle_rad * self.KP, -self.WMAX, self.WMAX)
+        # self.v = np.clip(np.cos(angle_rad) * self.dist, -self.VMAX, self.VMAX)
+        distance_error = self.dist - THRESHOLD_DIST
+        self.v = np.clip(distance_error * self.KV, 0, self.VMAX)
         self.w = np.clip(angle_rad * self.KP, -self.WMAX, self.WMAX)
-        self.v = np.clip(np.cos(angle_rad) * self.dist, -self.VMAX, self.VMAX)
 
         if self.dist < THRESHOLD_DIST: # if im already there
             self.w = 0
