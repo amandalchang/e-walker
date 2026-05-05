@@ -107,8 +107,8 @@ if __name__ == "__main__":
     #     repeat_drive(4, 0) 
     # -1.3 and 0.2 spin it in a nice circle w,v 1.3, -0.2
     # -1.6 & -0.3
-    for i in range(6): # 5 seconds at 2 is a full rotation
-        repeat_drive(0.4, 0)
+    for i in range(3): # 5 seconds at 2 is a full rotation
+        repeat_drive(0, 0.7)
     # for i in range(10): # 5 seconds at 2 is a full rotation
     #     repeat_drive(0, -0.3)
     print("stop")

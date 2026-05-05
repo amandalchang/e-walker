@@ -12,7 +12,7 @@ TURN_VAL = 5
 THRESHOLD_DIST = 100
 VALID_ANGLE_THRESHOLD = 45
 DEBUG = False
-PRINT_ONLY = True
+PRINT_ONLY = False
 ERR_VAL = 400
 ANGLE_MONITOR = True
 PRINT_VELOCITIES = False
@@ -47,12 +47,12 @@ class WalkerBot:
         self.ser = None
         self.walker_controller = WalkerController()
 
-        self.KW = 1
+        self.KW = 1.4
         self.KV = 0.0035
         self.WMAX = 2
         self.VMAX = 1
-        self.DEADZONE_SPIN_W = -1.6
-        self.DEADZONE_SPIN_V = 0.3
+        self.DEADZONE_SPIN_W = -1.3
+        self.DEADZONE_SPIN_V = 0.2
 
         self.state_streak = 0
         self.STATE_CONFIRM_COUNT = 2
@@ -79,8 +79,8 @@ class WalkerBot:
 
                 if self.current_state == State.DEADZONE:
                     print("deadzone")
-                    self.walker_controller.drive(0, 0, PRINT_ONLY=PRINT_ONLY)
-                    # self._behavior_deadzone()
+                    #self.walker_controller.drive(0, 0, PRINT_ONLY=PRINT_ONLY)
+                    self._behavior_deadzone()
 
                 elif self.current_state == State.VALID:
                     # if self.start:
