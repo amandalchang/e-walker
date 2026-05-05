@@ -4,7 +4,7 @@ import numpy as np
 from enum import Enum
 from collections import deque
 from serial.tools import list_ports
-from motor_firmware.walker_controller import WalkerController
+from walker_controller import WalkerController
 
 baud_rate = 115200
 
@@ -54,7 +54,7 @@ class WalkerBot:
         self.DEADZONE_SPIN_W = -1.3
         self.DEADZONE_SPIN_V = 0.2
 
-        self.state_streak = 0
+        self.state_streak = 2
         self.STATE_CONFIRM_COUNT = 2
 
         self.prev_dist = None
