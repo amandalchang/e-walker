@@ -155,10 +155,10 @@ class WalkerBot:
 
         avg_delta = np.median(list(self.dist_delta_window))
 
-        if avg_delta < -2:  # distance shrinking — target approaching or we're approaching target
-            self._behavior_forward()
-        elif avg_delta > 2:  # distance growing with hysteresis band
+        if avg_delta > 2: 
             self.spin_180()
+        else:  # distance growing with hysteresis band
+            self._behavior_forward()
 
     def spin_180(self):
         if DEBUG: print("spinning 180")
