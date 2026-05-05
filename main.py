@@ -11,11 +11,11 @@ baud_rate = 115200
 TURN_VAL = 5
 THRESHOLD_DIST = 100
 VALID_ANGLE_THRESHOLD = 45
-DEBUG = True
-PRINT_ONLY = False
+DEBUG = False
+PRINT_ONLY = True
 ERR_VAL = 400
-ANGLE_MONITOR = False
-PRINT_VELOCITIES = True
+ANGLE_MONITOR = True
+PRINT_VELOCITIES = False
 
 # TODO: spin 180 in the direction you came from
 
@@ -35,7 +35,7 @@ class State(Enum):
     VALID = "valid"
 
 class WalkerBot:
-    def __init__(self, angle_window=3, dist_window=2):
+    def __init__(self, angle_window=5, dist_window=2):
         self.current_state = State.DEADZONE
 
         self.angle_window = deque(maxlen=angle_window)
@@ -47,15 +47,15 @@ class WalkerBot:
         self.ser = None
         self.walker_controller = WalkerController()
 
-        self.KW = 0.5
+        self.KW = 1
         self.KV = 0.0035
         self.WMAX = 2
-        self.VMAX = 1.5
+        self.VMAX = 1
         self.DEADZONE_SPIN_W = -1.6
         self.DEADZONE_SPIN_V = 0.3
 
         self.state_streak = 0
-        self.STATE_CONFIRM_COUNT = 3
+        self.STATE_CONFIRM_COUNT = 2
 
         self.prev_dist = None
         self.dist_delta_window = deque(maxlen=5)
@@ -74,7 +74,6 @@ class WalkerBot:
         while True:
             data = self._read_serial()
             if data:
-                print("I got data")
                 self._update_filters(*data)
                 self._update_state()
 
@@ -84,7 +83,6 @@ class WalkerBot:
                     # self._behavior_deadzone()
 
                 elif self.current_state == State.VALID:
-                    print("valid")
                     # if self.start:
                     #     self.walker_controller.drive(w=0, v=0.1, PRINT_ONLY=PRINT_ONLY)
                     #     self.start = False
@@ -169,20 +167,25 @@ class WalkerBot:
         self.walker_controller.drive(self.w, self.v, PRINT_ONLY=PRINT_ONLY)
 
     def _behavior_forward(self):
-        if DEBUG: print("forward behavior")
+        if DEBUG: print(f"forward behavior, Dist: {self.dist}, Angle: {self.angle}")
         angle_rad = np.radians(self.angle)
-        # self.w = np.clip(angle_rad * self.KP, -self.WMAX, self.WMAX)
-        # self.v = np.clip(np.cos(angle_rad) * self.dist, -self.VMAX, self.VMAX)
         distance_error = self.dist - THRESHOLD_DIST
         self.v = np.clip(distance_error * self.KV, 0, self.VMAX)
-        self.w = np.clip(angle_rad * self.KW, -self.WMAX, self.WMAX)
+        if self.angle != ERR_VAL:
+            self.w = -np.clip(angle_rad * self.KW, -self.WMAX, self.WMAX)
 
         if self.dist < THRESHOLD_DIST: # if im already there
+            print("target reached, stopping")
             self.w = 0
             self.v = 0
 
         self.walker_controller.drive(self.w, self.v, PRINT_ONLY)
-        print(f"Driving: w={self.w:.2f}, v={self.v:.2f}")
+        if self.w > 0: # TURNING LEFT
+            print(f"Left: w={self.w:.2f}, v={self.v:.2f}")
+        elif self.w < 0:
+            print(f"Right : w={self.w:.2f}, v={self.v:.2f}")
+        else:
+            print(f"Forward: w={self.w:.2f}, v={self.v:.2f}")
 
 if __name__ == "__main__":
     robot = WalkerBot()
